@@ -1,0 +1,289 @@
+{% block body %}
+<head>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .order-form {
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .customer-info .form-control,
+        .order-details .form-control,
+        .order-form button {
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-control {
+            padding: 12px;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .order-details .input-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .order-details .input-group .form-group {
+            flex: 1;
+        }
+
+        .order-details .input-group .form-group select,
+        .order-details .input-group .form-group input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Adjusted styles for the "Ajouter" button */
+        #ajouterArticle {
+            padding: 6px 12px;
+            font-size: 14px;           
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        #ajouterArticle:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .total-section {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .bg-red-500 {
+            background-color: #f44336;
+        }
+
+        .bg-red-500:hover {
+            background-color: #e53935;
+        }
+
+        .text-white {
+            color: #fff;
+        }
+
+        .text-lg {
+            font-size: 18px;
+        }
+        
+        .rounded-md {
+            border-radius: 5px;
+        }
+
+        .mt-6 {
+            margin-top: 24px;
+        }
+        
+        .text-left {
+            text-align: left;
+        }
+    </style>
+</head>
+
+<div class="order-form">
+    <form method="post" action="{{ path('order_create') }}">
+        <!-- Customer Information Section -->
+        <div class="customer-info mb-6">
+            <div class="mb-4">
+                <label for="client" class="block text-gray-700">Client :</label>
+                <input type="text" class="form-control" id="client" name="client" value="{{ client ?? '1' }}" required>
+            </div>
+            <div class="mb-4">
+                <label for="telephone" class="block text-gray-700">Téléphone :</label>
+                <input type="text" class="form-control" id="telephone" name="telephone" value="{{ telephone ?? '778671011' }}" required>
+            </div>
+            <div class="mb-4">
+                <label for="adresse" class="block text-gray-700">Adresse :</label>
+                <input type="text" class="form-control" id="adresse" name="adresse" value="{{ adresse ?? 'Dakar | Point E | Villa001' }}" required>
+            </div>
+        </div>
+
+        <!-- Order Details Section -->
+        <div class="order-details mb-6">
+            <div class="input-group mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Article Selection -->
+                    <div class="form-group">
+                        <label for="article" class="block text-gray-700">Article :</label>
+                        <select class="form-control" id="article" name="article">
+                            <option value="">Choisir un Article</option>
+                            {% for article in articles %}
+                                <option value="{{ article.id }}" data-prix="{{ article.prix }}">{{ article.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Prix Input -->
+                    <div class="form-group">
+                        <label for="prix" class="block text-gray-700">Prix :</label>
+                        <input type="number" class="form-control" id="prix" name="prix" value="0" required readonly>
+                    </div>
+
+                    <!-- Quantity Input -->
+                    <div class="form-group">
+                        <label for="quantite" class="block text-gray-700">Quantité :</label>
+                        <input type="number" class="form-control" id="quantite" name="quantite" step="0.1" placeholder="Entrez la quantité" value="0" required>
+                    </div>
+                </div>
+
+                <!-- Add Button -->
+                <button type="button" id="ajouterArticle">Ajouter</button>
+            </div>
+        </div>
+
+        <!-- Order Items Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Article</th>
+                    <th class="px-4 py-2">Prix</th>
+                    <th class="px-4 py-2">Quantité</th>
+                    <th class="px-4 py-2">Montant</th>
+                    <th class="px-4 py-2">Supprimer</th>
+                </tr>
+            </thead>
+            <tbody id="orderItems">
+                {% for item in orderItems %}
+                    <tr>
+                        <td>{{ item.article.nom }}</td>
+                        <td>{{ item.prix }}</td>
+                        <td>{{ item.quantite }}</td>
+                        <td>{{ item.montant }}</td>
+                        <td><button type="button" class="bg-red-500 text-white px-2 py-1 rounded-md" onclick="supprimerArticle(this)">Supprimer</button></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Total Section -->
+        <div class="total-section">
+            <div>Total: <span id="totalAmount">{{ total ?? 0.0 }}</span></div>
+        </div>
+
+        <!-- Hidden Form for Order Submission -->
+        <form id="orderSubmissionForm" method="post" action="{{ path('order_store') }}">
+            <input type="hidden" name="client" id="clientHidden">
+            <input type="hidden" name="telephone" id="telephoneHidden">
+            <input type="hidden" name="adresse" id="adresseHidden">
+            <div id="orderItemsHidden"></div>
+            <input type="hidden" name="total" id="totalHidden">
+            <button type="submit" class="mt-6 bg-green-500 text-white px-6 py-3 rounded-md">Valider la Commande</button>
+        </form>
+    </form>
+</div>
+
+<script>
+    // Update price when article is selected
+    document.getElementById('article').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const prix = selectedOption.getAttribute('data-prix');
+        document.getElementById('prix').value = prix;
+    });
+
+    document.getElementById('ajouterArticle').addEventListener('click', function() {
+        const articleId = document.getElementById('article').value;
+        const prix = parseFloat(document.getElementById('prix').value);
+        const quantite = parseFloat(document.getElementById('quantite').value);
+
+        if (articleId && prix > 0 && quantite > 0) {
+            const montant = prix * quantite;
+            const articleName = document.getElementById('article').selectedOptions[0].text;
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${articleName}</td>
+                <td>${prix}</td>
+                <td>${quantite}</td>
+                <td>${montant.toFixed(2)}</td>
+                <td><button type="button" class="bg-red-500 text-white px-2 py-1 rounded-md" onclick="supprimerArticle(this)">Supprimer</button></td>
+            `;
+            document.getElementById('orderItems').appendChild(newRow);
+
+            const totalAmount = document.getElementById('totalAmount');
+            totalAmount.innerText = (parseFloat(totalAmount.innerText) + montant).toFixed(2);
+        }
+    });
+
+    function supprimerArticle(button) {
+        const row = button.closest('tr');
+        const montant = parseFloat(row.cells[3].innerText);
+        const totalAmount = document.getElementById('totalAmount');
+        totalAmount.innerText = (parseFloat(totalAmount.innerText) - montant).toFixed(2);
+        row.remove();
+    }
+
+    document.getElementById('orderSubmissionForm').addEventListener('submit', function(event) {
+        const orderItems = document.getElementById('orderItems').children;
+        let hiddenItems = '';
+        for (let i = 0; i < orderItems.length; i++) {
+            const articleName = orderItems[i].cells[0].innerText;
+            const prix = orderItems[i].cells[1].innerText;
+            const quantite = orderItems[i].cells[2].innerText;
+            const montant = orderItems[i].cells[3].innerText;
+
+            hiddenItems += `
+                <input type="hidden" name="articles[${i}][name]" value="${articleName}">
+                <input type="hidden" name="articles[${i}][prix]" value="${prix}">
+                <input type="hidden" name="articles[${i}][quantite]" value="${quantite}">
+                <input type="hidden" name="articles[${i}][montant]" value="${montant}">
+            `;
+        }
+        document.getElementById('orderItemsHidden').innerHTML = hiddenItems;
+        document.getElementById('totalHidden').value = totalAmount.innerText;
+    });
+</script>
+{% endblock %}

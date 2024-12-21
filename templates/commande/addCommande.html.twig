@@ -1,0 +1,18 @@
+{# templates/commande/addCommande.html.twig #}
+<form method="POST" action="{{ path('add_commande') }}">
+    <label for="phoneNumber">Numéro de téléphone du client:</label>
+    <input type="text" id="phoneNumber" name="phoneNumber" required>
+    
+    <div id="articles">
+        <!-- Formulaire pour ajouter des articles à la commande -->
+        <label for="article1">Article 1:</label>
+        <select name="articles[0][articleId]">
+            {% for article in articles %}
+                <option value="{{ article.id }}">{{ article.nom }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="articles[0][quantite]" placeholder="Quantité" required>
+    </div>
+    
+    <button type="submit">Ajouter la commande</button>
+</form>
